@@ -17,29 +17,29 @@
   </style>
 </head>
 <body>
-  <!-- ◉ 1) token·expires 파라미터 재검사 -->
+  <!-- 1) token·expires 파라미터 검사 -->
   <script>
     const ps2 = new URLSearchParams(location.search);
     const t2  = ps2.get('token'), e2 = ps2.get('expires');
     const today2 = new Date().toISOString().slice(0,10).replace(/-/g,'');
     if (!t2 || !e2 || today2 > e2) {
-      return window.location.replace("not-allowed.html");
+      window.location.replace("not-allowed.html");
     }
   </script>
 
-  <!-- ◉ 2) IP 인증 유지 -->
+  <!-- 2) IP 인증 유지 -->
   <script>
     if (!localStorage.getItem('hanbada_authenticated')) {
       window.location.replace("not-allowed.html");
     }
   </script>
 
-  <!-- ◉ 3) 쿠폰 번호 표시 -->
+  <!-- 3) 쿠폰 번호 표시 -->
   <h2 id="title">Coupon</h2>
   <img src="membership.jpg" alt="Membership Card" />
   <div id="timer" class="timer"></div>
 
-  <!-- ◉ 4) issuedAt 기반 7일·초단위 카운트다운 -->
+  <!-- 4) issuedAt 기반 7일·초단위 카운트다운 -->
   <script>
     const p = new URLSearchParams(location.search);
     const idx      = p.get('coupon');
@@ -50,7 +50,8 @@
     function tick() {
       const diff = expiry - Date.now();
       if (diff <= 0) {
-        return window.location.replace("not-allowed.html");
+        window.location.replace("not-allowed.html");
+        return;
       }
       const d = Math.floor(diff / 86400000),
             h = Math.floor((diff % 86400000) / 3600000),
