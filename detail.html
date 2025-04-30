@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coupon Detail</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 20px; }
+    img { max-width: 100%; border-radius: 8px; }
+    .timer { margin-top: 10px; font-weight: bold; color: green; font-size: 16px; }
+    .expired { color: red; font-weight: bold; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <h2 id="title">Coupon</h2>
+  <img src="membership.jpg" alt="Membership Card" />
+  <div id="timer" class="timer"></div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const idx = params.get('coupon') || '';
+    if (idx) document.getElementById('title').innerText = `Coupon ${idx}`;
+
+    const issue = parseInt(localStorage.getItem('hanbada_coupon_issue_date') || Date.now());
+    const expiry = new Date(issue + 7*24*60*60*1000);
+
+    function updateTimer() {
+      const diff = expiry - new Date();
+      const el = document.getElementById('timer');
+      if (diff <= 0) {
+        el.className = 'expired';
+        el.innerText = 'Expired – This coupon is no longer valid';
+        clearInterval(tick);
+      } else {
+        const d = Math.floor(diff/(24*3600*1000));
+        const h = Math.floor((diff/(3600*1000)) % 24);
+        const m = Math.floor((diff/(60*1000)) % 60);
+        const s = Math.floor((diff/1000) % 60);
+        el.innerText = `Remaining: ${d}d ${h}h ${m}m ${s}s`;
+      }
+    }
+    updateTimer();
+    const tick = setInterval(updateTimer, 1000);
+  </script>
+</body>
+</html>
