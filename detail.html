@@ -6,24 +6,16 @@
   <title>Coupon Detail</title>
   <style>
     body { font-family:sans-serif; text-align:center; padding:20px; }
-    img {
-      max-width:250px; width:70%; height:auto;
-      border-radius:8px; display:block; margin:20px auto;
-    }
-    .timer {
-      margin:20px auto 0; font-weight:bold;
-      color:green; font-size:24px; text-align:center;
-    }
+    img { max-width:250px; width:70%; display:block; margin:20px auto; }
+    .timer { font-weight:bold; color:green; font-size:24px; }
   </style>
 </head>
 <body>
-  <!-- 1) token·expires 검증 -->
+  <!-- 1) token 파라미터 확인 -->
   <script>
-    const qp = new URLSearchParams(location.search);
-    const t  = qp.get('token'), e = qp.get('expires');
-    const today = new Date().toISOString().slice(0,10).replace(/-/g,'');
-    if (!t || !e || today > e) {
-      window.location.replace("not-allowed.html");
+    const ps = new URLSearchParams(location.search);
+    if (!ps.get('token')) {
+      return window.location.replace("not-allowed.html");
     }
   </script>
 
@@ -34,26 +26,22 @@
     }
   </script>
 
-  <!-- 3) 쿠폰 번호 표시 & 카드 -->
+  <!-- 3) 쿠폰 번호 & 카드 -->
   <h2 id="title">Coupon</h2>
   <img src="membership.jpg" alt="Membership Card"/>
 
-  <!-- 4) issuedAt 기준 7일·초단위 카운트다운 -->
+  <!-- 4) issuedAt 기준 7일 초단위 카운트다운 -->
   <div id="timer" class="timer"></div>
   <script>
-    const params   = new URLSearchParams(location.search);
-    const idx      = params.get('coupon');
-    const issuedAt = parseInt(params.get('issuedAt'),10) || Date.now();
-    if (idx) {
-      document.getElementById('title').innerText = `Coupon ${idx}`;
-    }
-
-    const expiryTime = issuedAt + 7*24*60*60*1000;
+    const params  = new URLSearchParams(location.search);
+    const idx     = params.get('coupon');
+    const issued  = parseInt(params.get('issuedAt'),10) || Date.now();
+    if (idx) document.getElementById('title').innerText = `Coupon ${idx}`;
+    const expiry = issued + 7*24*60*60*1000;
     function tick(){
-      const diff = expiryTime - Date.now();
+      const diff = expiry - Date.now();
       if (diff <= 0) {
-        window.location.replace("not-allowed.html");
-        return;
+        return window.location.replace("not-allowed.html");
       }
       const d = Math.floor(diff/86400000),
             h = Math.floor((diff%86400000)/3600000),
