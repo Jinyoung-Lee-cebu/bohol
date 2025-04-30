@@ -24,23 +24,28 @@
 </head>
 <body>
 
-  <!-- 0) URL query 읽기 + 발급 시점(지금) 찍기 -->
+  <!-- (0) 전역 변수 선언 -->
   <script>
-    const qp      = new URLSearchParams(location.search);
-    const token   = qp.get('token');
-    const expires = qp.get('expires');              // YYYYMMDD
-    const today   = new Date().toISOString().slice(0,10).replace(/-/g,'');
-    // 유효성 검사
-    if (!token || !expires || today > expires) {
-      return window.location.replace("not-allowed.html");
-    }
-    // 발급 시점 기록 (항상 지금 시점)
-    const issuedAt = Date.now();
+    var token, expires, issuedAt;
   </script>
 
-  <!-- 1) 사무실 IP 인증 -->
+  <!-- (1) URL 파라미터 검사 & 변수 초기화 -->
   <script>
-    const AUTH_KEY = 'hanbada_authenticated';
+    var qs = new URLSearchParams(location.search);
+    token   = qs.get('token');
+    expires = qs.get('expires');      // YYYYMMDD
+    var today = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    // 유효 검증
+    if (!token || !expires || today > expires) {
+      window.location.replace("not-allowed.html");
+    }
+    // 발급 시점: 항상 접속 시점
+    issuedAt = Date.now();
+  </script>
+
+  <!-- (2) 사무실 IP 인증 -->
+  <script>
+    var AUTH_KEY = 'hanbada_authenticated';
     function deny(){ window.location.replace("not-allowed.html"); }
     if (!localStorage.getItem(AUTH_KEY)) {
       fetch("https://api.ipify.org?format=json")
@@ -60,25 +65,25 @@
     <p class="intro">사진을 누르면 멤버쉽 쿠폰이 제공됩니다.</p>
   </div>
 
-  <!-- 2) 썸네일 그리드 -->
+  <!-- (3) 썸네일 그리드 -->
   <div class="grid" id="couponGrid"></div>
   <script>
-    const grid  = document.getElementById('couponGrid');
-    const total = 17;
+    var grid  = document.getElementById('couponGrid');
+    var total = 17;
     for (let i = 1; i <= total; i++) {
-      const card = document.createElement('div');
+      var card = document.createElement('div');
       card.className = 'card';
-      const img  = document.createElement('img');
-      img.src    = `${i}.png`;
+      var img  = document.createElement('img');
+      img.src  = i + '.png';
       card.appendChild(img);
-      card.onclick = () => {
-        // detail로 이동할 때 항상 새 issuedAt을 URL에 포함
+      // 클릭하면 detail.html 로 이동
+      card.addEventListener('click', function() {
         window.location.href =
-          `detail.html?coupon=${i}` +
-          `&token=${token}` +
-          `&expires=${expires}` +
-          `&issuedAt=${issuedAt}`;
-      };
+          'detail.html?coupon=' + i +
+          '&token='   + encodeURIComponent(token) +
+          '&expires=' + expires +
+          '&issuedAt=' + issuedAt;
+      });
       grid.appendChild(card);
     }
   </script>
