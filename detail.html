@@ -6,16 +6,23 @@
   <title>Coupon Detail</title>
   <style>
     body { font-family:sans-serif; text-align:center; padding:20px; }
-    img { max-width:250px; width:70%; display:block; margin:20px auto; }
-    .timer { font-weight:bold; color:green; font-size:24px; }
+    img {
+      max-width:250px; width:70%; height:auto;
+      border-radius:8px; display:block; margin:20px auto;
+    }
+    .timer {
+      margin:20px auto 0; font-weight:bold;
+      color:green; font-size:24px; text-align:center;
+    }
   </style>
 </head>
 <body>
-  <!-- 1) token 파라미터 체크 -->
+  <!-- 1) token·expires 검증 -->
   <script>
-    const p = new URLSearchParams(location.search);
-    const token = p.get('token');
-    if (!token) {
+    const qp = new URLSearchParams(location.search);
+    const t  = qp.get('token'), e = qp.get('expires');
+    const today = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    if (!t || !e || today > e) {
       window.location.replace("not-allowed.html");
     }
   </script>
@@ -27,26 +34,26 @@
     }
   </script>
 
-  <!-- 3) 쿠폰 번호 & 카드 -->
+  <!-- 3) 쿠폰 번호 표시 & 카드 -->
   <h2 id="title">Coupon</h2>
   <img src="membership.jpg" alt="Membership Card"/>
 
-  <!-- 4) 발급 시점(issuedAt) 기반 7일 카운트다운 -->
+  <!-- 4) issuedAt 기준 7일·초단위 카운트다운 -->
   <div id="timer" class="timer"></div>
   <script>
-    const ps = new URLSearchParams(location.search);
-    const idx = ps.get('coupon');
-    const issuedAt = parseInt(ps.get('issuedAt'),10) || Date.now();
-    if (idx) document.getElementById('title').innerText = `Coupon ${idx}`;
+    const params   = new URLSearchParams(location.search);
+    const idx      = params.get('coupon');
+    const issuedAt = parseInt(params.get('issuedAt'),10) || Date.now();
+    if (idx) {
+      document.getElementById('title').innerText = `Coupon ${idx}`;
+    }
 
-    // 발급 시점 + 7일(밀리초)
     const expiryTime = issuedAt + 7*24*60*60*1000;
-
     function tick(){
       const diff = expiryTime - Date.now();
       if (diff <= 0) {
-        // 만료 즉시 차단
-        return window.location.replace("not-allowed.html");
+        window.location.replace("not-allowed.html");
+        return;
       }
       const d = Math.floor(diff/86400000),
             h = Math.floor((diff%86400000)/3600000),
@@ -55,10 +62,8 @@
       document.getElementById('timer').textContent =
         `Remaining: ${d}d ${h}h ${m}m ${s}s`;
     }
-
-    // 첫 실행 + 1초마다 갱신
     tick();
-    setInterval(tick, 1000);
+    setInterval(tick,1000);
   </script>
 </body>
 </html>
