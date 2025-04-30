@@ -40,12 +40,12 @@
           if (data.ip === OFFICE_IP) {
             localStorage.setItem(AUTH_KEY, "true");
           } else {
-            alert("이 쿠폰은 사무실 와이파이 연결이 필요합니다.");
+            alert("이 쿠폰은 태그트립 와이파이 연결이 필요합니다.");
             window.location.replace("not-allowed.html");
           }
         })
         .catch(_=>{
-          alert("IP 확인에 실패했습니다. 사무실 와이파이에 연결된 상태인지 확인해주세요.");
+          alert("IP 확인에 실패했습니다. 태그트립 와이파이에 연결된 상태인지 확인해주세요.");
           window.location.replace("not-allowed.html");
         });
     }
