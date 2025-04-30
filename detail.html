@@ -31,6 +31,49 @@
 </head>
 <body>
   <!-- 사무실 IP 인증 -->
+  <!DOCTYPE html>
+<html lang="en">
+<head> … </head>
+<body>
+  <!-- 1) 와이파이 IP 인증 (index와 동일한 로직) -->
+  <script>
+    const AUTH_KEY = 'hanbada_authenticated';
+    function deny(){ window.location.replace("not-allowed.html"); }
+    if (!localStorage.getItem(AUTH_KEY)) {
+      fetch("https://api.ipify.org?format=json")
+        .then(r=>r.json())
+        .then(data=>{
+          if (data.ip === "210.23.165.97") {
+            localStorage.setItem(AUTH_KEY, "true");
+          } else deny();
+        })
+        .catch(deny);
+    }
+  </script>
+
+  <!-- 2) 여기부터 기존 issuedAt 카운트다운 -->
+  <h2 id="title">Coupon</h2>
+  <img src="membership.jpg" alt="Membership Card" />
+  <div id="timer" class="timer"></div>
+  <script>
+    const p = new URLSearchParams(location.search);
+    const idx = p.get('coupon'), at = parseInt(p.get('issuedAt'))||Date.now();
+    if (idx) document.getElementById('title').innerText = `Coupon ${idx}`;
+    const expiry = at + 7*24*60*60*1000;
+    function tick(){
+      const d = expiry - Date.now(), el = document.getElementById('timer');
+      if (d<=0) return window.location.replace("not-allowed.html");
+      const days=Math.floor(d/86400000),
+            hrs =Math.floor((d%86400000)/3600000),
+            mins=Math.floor((d%3600000)/60000),
+            secs=Math.floor((d%60000)/1000);
+      el.innerText = `Remaining: ${days}d ${hrs}h ${mins}m ${secs}s`;
+    }
+    tick(); setInterval(tick,1000);
+  </script>
+</body>
+</html>
+
   <script>
     const AUTH_KEY = 'hanbada_authenticated';
     if (!localStorage.getItem(AUTH_KEY)) {
