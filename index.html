@@ -26,7 +26,7 @@
     const expiryDate = new Date(issueDate);
     expiryDate.setDate(issueDate.getDate() + 7);
     const isExpired = now > expiryDate;
-    const totalCoupons = 17; // adjust if number of images changes
+    const totalCoupons = 17; // adjust as needed
     for (let i = 1; i <= totalCoupons; i++) {
       const card = document.createElement('div');
       card.className = 'card';
