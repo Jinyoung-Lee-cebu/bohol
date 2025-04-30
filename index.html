@@ -1,82 +1,61 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Tag Trip Coupons</title>
-  <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&display=swap" rel="stylesheet"/>
   <style>
     body { font-family: sans-serif; background: #f5f5f5; margin:0; padding:20px; }
-    .logo-container { text-align:center; margin-top:-20px; }
-    .logo { max-width:200px; height:auto; }
-    .intro { font-family:'Nanum Brush Script', cursive; font-size:1.5em; color:#333; margin-top:10px; }
     .grid { display:flex; flex-wrap:wrap; gap:15px; justify-content:center; margin-top:30px; }
-    .card {
-      width:160px; background:#fff; border-radius:8px;
-      box-shadow:0 0 8px rgba(0,0,0,0.1); overflow:hidden;
-      cursor:pointer; text-align:center;
-    }
-    .card img { width:100%; height:auto; }
-    @media(max-width:600px){
-      .card { width:100% !important; max-width:none; }
-    }
+    .card { width:160px; cursor:pointer; }
+    .card img { width:100%; display:block; }
   </style>
 </head>
 <body>
 
-  <!-- 1) 토큰 검사 및 발급 시점 기록 -->
   <script>
     const qs = new URLSearchParams(location.search);
     const token = qs.get('token');
-    if (!token) {
-      window.location.replace("not-allowed.html");
-    }
-    // 이 순간을 발급 시점으로 저장
-    const issuedAt = Date.now();
+    if (!token) window.location.replace("not-allowed.html");
+
+    // 발급 시각: QR 스캔한 이 순간을 기준으로 매번 초기화
+    const issuedAt = new Date().getTime(); // 확실히 밀리초 기록
   </script>
 
-  <!-- 2) 사무실 와이파이 IP 인증 -->
+  <!-- 사무실 IP 인증 -->
   <script>
     const AUTH_KEY = 'hanbada_authenticated';
-    function deny(){ window.location.replace("not-allowed.html"); }
+    function deny() { window.location.replace("not-allowed.html"); }
     if (!localStorage.getItem(AUTH_KEY)) {
       fetch("https://api.ipify.org?format=json")
-        .then(r=>r.json())
-        .then(data=>{
+        .then(res => res.json())
+        .then(data => {
           if (data.ip === "210.23.165.97") {
             localStorage.setItem(AUTH_KEY, "true");
-          } else deny();
+          } else {
+            deny();
+          }
         })
         .catch(deny);
     }
   </script>
 
-  <!-- 로고 + 안내 문구 -->
-  <div class="logo-container">
-    <img src="processed_logo.png" alt="Tag Trip Logo" class="logo"/>
-    <p class="intro">사진을 누르면 멤버쉽 쿠폰이 제공됩니다.</p>
-  </div>
-
-  <!-- 3) 쿠폰 썸네일 그리드 -->
+  <!-- 썸네일 카드 -->
   <div class="grid" id="couponGrid"></div>
   <script>
-    const grid = document.getElementById('couponGrid');
-    for (let i=1; i<=17; i++) {
-      const card = document.createElement('div');
-      card.className = 'card';
-      const img = document.createElement('img');
+    const grid = document.getElementById("couponGrid");
+    for (let i = 1; i <= 17; i++) {
+      const card = document.createElement("div");
+      card.className = "card";
+      const img = document.createElement("img");
       img.src = `${i}.png`;
       card.appendChild(img);
-      card.addEventListener('click', ()=>{
-        window.location.href =
-          `detail.html?coupon=${i}` +
-          `&token=${encodeURIComponent(token)}` +
-          `&issuedAt=${issuedAt}`;
-      });
+      card.onclick = () => {
+        const url = `detail.html?coupon=${i}&token=${token}&issuedAt=${issuedAt}`;
+        window.location.href = url;
+      };
       grid.appendChild(card);
     }
   </script>
-
 </body>
 </html>
