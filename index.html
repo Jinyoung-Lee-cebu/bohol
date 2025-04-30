@@ -10,6 +10,10 @@
     .card { width: 160px; background: #fff; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); overflow: hidden; cursor: pointer; text-align: center; }
     .card img { width: 100%; height: auto; }
     .expired { color: red; font-weight: bold; font-size: 14px; margin-top: 5px; }
+    /* 모바일 화면에서 한 줄에 하나씩 보이도록 조정 */
+    @media (max-width: 600px) {
+      .card { width: 100% !important; max-width: none; }
+    }
   </style>
 </head>
 <body>
@@ -23,11 +27,10 @@
     const expiryDate = new Date(issueDate.getTime() + 7*24*60*60*1000);
 
     const total = 17;
-    const now = new Date();
     for (let i = 1; i <= total; i++) {
       const card = document.createElement('div'); card.className = 'card';
       const img = document.createElement('img'); img.src = `${i}.png`; card.appendChild(img);
-      if (now > expiryDate) {
+      if (new Date() > expiryDate) {
         const msg = document.createElement('div'); msg.className = 'expired';
         msg.innerText = 'Expired – This coupon is no longer valid'; card.appendChild(msg);
       } else {
