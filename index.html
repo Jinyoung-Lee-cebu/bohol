@@ -24,27 +24,26 @@
 </head>
 <body>
 
-  <!-- ◉ 0) 이전 쿠폰 세션 완전 초기화 -->
+  <!-- 0) 매번 도메인 진입 시점에 issuedAt 기록 -->
   <script>
-    sessionStorage.removeItem('coupon_token');
-    sessionStorage.removeItem('coupon_expires');
-    sessionStorage.removeItem('coupon_issuedAt');
+    sessionStorage.setItem('coupon_issuedAt', Date.now().toString());
   </script>
 
-  <!-- ◉ 1) URL에서 token·expires 검사 및 session에 저장 -->
+  <!-- 1) URL에서 token·expires 검사 및 session에 저장 -->
   <script>
     const qs = new URLSearchParams(location.search);
     const token   = qs.get('token');
-    const expires = qs.get('expires');      // YYYYMMDD
+    const expires = qs.get('expires');                // YYYYMMDD
     const today   = new Date().toISOString().slice(0,10).replace(/-/g,'');
     if (!token || !expires || today > expires) {
-      return window.location.replace("not-allowed.html");
+      window.location.replace("not-allowed.html");
+    } else {
+      sessionStorage.setItem('coupon_token', token);
+      sessionStorage.setItem('coupon_expires', expires);
     }
-    sessionStorage.setItem('coupon_token', token);
-    sessionStorage.setItem('coupon_expires', expires);
   </script>
 
-  <!-- ◉ 2) 사무실 IP 인증 -->
+  <!-- 2) 사무실 IP 인증 -->
   <script>
     const AUTH_KEY = 'hanbada_authenticated';
     function deny(){ window.location.replace("not-allowed.html"); }
@@ -60,26 +59,20 @@
     }
   </script>
 
-  <!-- ◉ 3) 스캔 시점(매번) issuedAt 기록 -->
-  <script>
-    const now = Date.now();
-    sessionStorage.setItem('coupon_issuedAt', now.toString());
-  </script>
-
-  <!-- 로고 + 안내문구 -->
+  <!-- 로고 + 안내문 -->
   <div class="logo-container">
     <img src="processed_logo.png" alt="Tag Trip Logo" class="logo"/>
     <p class="intro">사진을 누르면 멤버쉽 쿠폰이 제공됩니다.</p>
   </div>
 
-  <!-- ◉ 4) 썸네일 그리드 생성 -->
+  <!-- 3) 썸네일 그리드 -->
   <div class="grid" id="couponGrid"></div>
   <script>
     const grid   = document.getElementById('couponGrid');
     const total  = 17;
-    const tkn    = sessionStorage.getItem('coupon_token');
-    const exp    = sessionStorage.getItem('coupon_expires');
-    const issued = sessionStorage.getItem('coupon_issuedAt');
+    const tokenS = sessionStorage.getItem('coupon_token');
+    const expS   = sessionStorage.getItem('coupon_expires');
+    const issueS = sessionStorage.getItem('coupon_issuedAt');
     for (let i = 1; i <= total; i++) {
       const card = document.createElement('div');
       card.className = 'card';
@@ -88,7 +81,7 @@
       card.appendChild(img);
       card.onclick = () => {
         window.location.href =
-          `detail.html?coupon=${i}&token=${tkn}&expires=${exp}&issuedAt=${issued}`;
+          `detail.html?coupon=${i}&token=${tokenS}&expires=${expS}&issuedAt=${issueS}`;
       };
       grid.appendChild(card);
     }
