@@ -17,74 +17,70 @@
   <div class="grid" id="couponGrid"></div>
   <script>
     const grid = document.getElementById('couponGrid');
-    const STORAGE_KEY = 'hanbada_coupon_issue_date';
-    const now = new Date();
-    if (!localStorage.getItem(STORAGE_KEY)) {
-      localStorage.setItem(STORAGE_KEY, now.getTime());
+    const KEY = 'hanbada_coupon_issue_date';
+    let now = new Date();
+    if (!localStorage.getItem(KEY)) {
+      localStorage.setItem(KEY, now.getTime());
     }
-    const issueDate = new Date(parseInt(localStorage.getItem(STORAGE_KEY)));
+    const issueDate = new Date(parseInt(localStorage.getItem(KEY)));
     const expiryDate = new Date(issueDate);
     expiryDate.setDate(issueDate.getDate() + 7);
-    const isExpired = now > expiryDate;
-    const totalCoupons = 17; // adjust as needed
-    for (let i = 1; i <= totalCoupons; i++) {
+
+    // 카드 렌더링
+    const total = 17; 
+    for (let i = 1; i <= total; i++) {
       const card = document.createElement('div');
       card.className = 'card';
       const img = document.createElement('img');
       img.src = `${i}.png`;
       card.appendChild(img);
-      if (isExpired) {
+
+      if (new Date() > expiryDate) {
         const msg = document.createElement('div');
         msg.className = 'expired';
         msg.innerText = 'Expired – This coupon is no longer valid';
         card.appendChild(msg);
       } else {
-        card.addEventListener('click', () => openWindow(i));
+        card.addEventListener('click', () => {
+          const win = window.open('', '_blank', 'width=400,height=600');
+          win.document.write(\`
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coupon \${i}</title>
+  <style>
+    body{font-family:sans-serif;text-align:center;padding:20px;}
+    img{max-width:100%;border-radius:8px;}
+    .timer{margin-top:10px;font-weight:bold;color:green;font-size:16px;}
+    .expired{color:red;font-weight:bold;font-size:18px;}
+  </style>
+</head><body>
+  <h2>Coupon \${i}</h2>
+  <img src="membership.jpg" alt="Membership Card">
+  <div id="timer" class="timer"></div>
+  <script>
+    const expiry = new Date(\${expiryDate.getTime()});
+    function upd(){ 
+      const d=(expiry-new Date());
+      const el=document.getElementById('timer');
+      if(d<=0){
+        el.className='expired';
+        el.innerText='Expired – This coupon is no longer valid';
+        clearInterval(t);
+      } else {
+        const days=Math.floor(d/86400000),
+              hrs=Math.floor((d/3600000)%24),
+              mins=Math.floor((d/60000)%60),
+              secs=Math.floor((d/1000)%60);
+        el.innerText=\`Remaining: \${days}d \${hrs}h \${mins}m \${secs}s\`;
+      }
+    }
+    upd();
+    const t=setInterval(upd,1000);
+  <\/script>
+</body></html>\`);
+        });
       }
       grid.appendChild(card);
-    }
-
-    function openWindow(index) {
-      const win = window.open('', '_blank', 'width=400,height=600');
-      win.document.write(`<!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <title>Coupon ${index}</title>
-          <style>
-            body { font-family: sans-serif; text-align: center; padding: 20px; }
-            img { max-width: 100%; border-radius: 8px; }
-            .timer { margin-top: 10px; font-weight: bold; color: green; font-size: 16px; }
-            .expired { color: red; font-weight: bold; font-size: 18px; }
-          </style>
-        </head>
-        <body>
-          <h2>Coupon ${index}</h2>
-          <img src="membership.jpg" alt="Membership Card" />
-          <div id="timer" class="timer"></div>
-          <script>
-            const expiry = new Date(${expiryDate.getTime()});
-            function updateTimer() {
-              const diff = expiry - new Date();
-              const timerEl = document.getElementById('timer');
-              if (diff <= 0) {
-                timerEl.className = 'expired';
-                timerEl.innerText = 'Expired – This coupon is no longer valid';
-                clearInterval(interval);
-              } else {
-                const d = Math.floor(diff / (1000*60*60*24));
-                const h = Math.floor((diff / (1000*60*60)) % 24);
-                const m = Math.floor((diff / (1000*60)) % 60);
-                const s = Math.floor((diff / 1000) % 60);
-                timerEl.innerText = `Remaining: ${d}d ${h}h ${m}m ${s}s`;
-              }
-            }
-            updateTimer();
-            const interval = setInterval(updateTimer, 1000);
-          <\/script>
-        </body>
-        </html>`);
     }
   </script>
 </body>
