@@ -24,7 +24,14 @@
 </head>
 <body>
 
-  <!-- ① URL에서 token·expires 검사 -->
+  <!-- ◉ 새로 스캔할 때마다 이전 쿠폰 세션 초기화 -->
+  <script>
+    sessionStorage.removeItem('coupon_token');
+    sessionStorage.removeItem('coupon_expires');
+    sessionStorage.removeItem('coupon_issuedAt');
+  </script>
+
+  <!-- ◉ ① URL에서 token·expires 검사 및 저장 -->
   <script>
     const qs = new URLSearchParams(location.search);
     const token   = qs.get('token');
@@ -33,12 +40,11 @@
     if (!token || !expires || today > expires) {
       return window.location.replace("not-allowed.html");
     }
-    // 세션에 저장
     sessionStorage.setItem('coupon_token', token);
     sessionStorage.setItem('coupon_expires', expires);
   </script>
 
-  <!-- ② 사무실 IP 인증 -->
+  <!-- ◉ ② 사무실 IP 인증 -->
   <script>
     const AUTH_KEY = 'hanbada_authenticated';
     function deny(){ window.location.replace("not-allowed.html"); }
@@ -54,7 +60,7 @@
     }
   </script>
 
-  <!-- ③ 발급 시점 기록 (매번 최신으로 덮어쓰기) -->
+  <!-- ◉ ③ 발급 시점 강제 기록 -->
   <script>
     const now = Date.now();
     sessionStorage.setItem('coupon_issuedAt', now.toString());
@@ -66,7 +72,7 @@
     <p class="intro">사진을 누르면 멤버쉽 쿠폰이 제공됩니다.</p>
   </div>
 
-  <!-- ④ 썸네일 그리드 -->
+  <!-- ◉ ④ 썸네일 그리드 -->
   <div class="grid" id="couponGrid"></div>
   <script>
     const grid   = document.getElementById('couponGrid');
