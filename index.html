@@ -24,17 +24,18 @@
 </head>
 <body>
 
-  <!-- ① URL 파라미터에서 token·expires 검사 -->
+  <!-- ① URL에서 token·expires 검사 -->
   <script>
-    const params0 = new URLSearchParams(location.search);
-    const token0   = params0.get('token');
-    const expires0 = params0.get('expires');                // YYYYMMDD
-    const today0   = new Date().toISOString().slice(0,10).replace(/-/g,'');
-    if (!token0 || !expires0 || today0 > expires0) {
+    const qs = new URLSearchParams(location.search);
+    const token   = qs.get('token');
+    const expires = qs.get('expires');                // YYYYMMDD
+    const today   = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    if (!token || !expires || today > expires) {
       return window.location.replace("not-allowed.html");
     }
-    sessionStorage.setItem('coupon_token', token0);
-    sessionStorage.setItem('coupon_expires', expires0);
+    // 세션에 저장
+    sessionStorage.setItem('coupon_token', token);
+    sessionStorage.setItem('coupon_expires', expires);
   </script>
 
   <!-- ② 사무실 IP 인증 -->
@@ -46,17 +47,17 @@
         .then(r=>r.json())
         .then(data=>{
           if (data.ip === "210.23.165.97") {
-            localStorage.setItem(AUTH_KEY,"true");
+            localStorage.setItem(AUTH_KEY, "true");
           } else deny();
         })
         .catch(deny);
     }
   </script>
 
-  <!-- ③ 발급 시점 기록 (항상 최신으로 덮어쓰기) -->
+  <!-- ③ 발급 시점 기록 (매번 최신으로 덮어쓰기) -->
   <script>
-    const issuedNow = Date.now();
-    sessionStorage.setItem('coupon_issuedAt', issuedNow.toString());
+    const now = Date.now();
+    sessionStorage.setItem('coupon_issuedAt', now.toString());
   </script>
 
   <!-- 로고 + 안내 -->
@@ -65,14 +66,14 @@
     <p class="intro">사진을 누르면 멤버쉽 쿠폰이 제공됩니다.</p>
   </div>
 
-  <!-- ④ 썸네일 그리드 생성 -->
+  <!-- ④ 썸네일 그리드 -->
   <div class="grid" id="couponGrid"></div>
   <script>
-    const grid    = document.getElementById('couponGrid');
-    const total   = 17;
-    const tkn     = sessionStorage.getItem('coupon_token');
-    const exp     = sessionStorage.getItem('coupon_expires');
-    const issued  = sessionStorage.getItem('coupon_issuedAt');
+    const grid   = document.getElementById('couponGrid');
+    const total  = 17;
+    const tkn    = sessionStorage.getItem('coupon_token');
+    const exp    = sessionStorage.getItem('coupon_expires');
+    const issued = sessionStorage.getItem('coupon_issuedAt');
     for (let i = 1; i <= total; i++) {
       const card = document.createElement('div');
       card.className = 'card';
