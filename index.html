@@ -24,22 +24,17 @@
 </head>
 <body>
 
-  <!-- ① URL 파라미터에서 token,expires,issuedAt 읽기 -->
+  <!-- ① URL 파라미터에서 token·expires 검사 -->
   <script>
-    const ps = new URLSearchParams(location.search);
-    const token   = ps.get('token');
-    const expires = ps.get('expires');
-    const issuedAt= ps.get('issuedAt') ? parseInt(ps.get('issuedAt')) : Date.now();
-    const today   = new Date().toISOString().slice(0,10).replace(/-/g,'');
-
-    // 토큰/만료일 검사
-    if (!token || !expires || today > expires) {
+    const params0 = new URLSearchParams(location.search);
+    const token0   = params0.get('token');
+    const expires0 = params0.get('expires');                // YYYYMMDD
+    const today0   = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    if (!token0 || !expires0 || today0 > expires0) {
       return window.location.replace("not-allowed.html");
     }
-    // 세션에 저장
-    sessionStorage.setItem('coupon_token', token);
-    sessionStorage.setItem('coupon_expires', expires);
-    sessionStorage.setItem('coupon_issuedAt', issuedAt.toString());
+    sessionStorage.setItem('coupon_token', token0);
+    sessionStorage.setItem('coupon_expires', expires0);
   </script>
 
   <!-- ② 사무실 IP 인증 -->
@@ -49,12 +44,19 @@
     if (!localStorage.getItem(AUTH_KEY)) {
       fetch("https://api.ipify.org?format=json")
         .then(r=>r.json())
-        .then(d=>{
-          if (d.ip === "210.23.165.97") localStorage.setItem(AUTH_KEY,"true");
-          else deny();
+        .then(data=>{
+          if (data.ip === "210.23.165.97") {
+            localStorage.setItem(AUTH_KEY,"true");
+          } else deny();
         })
         .catch(deny);
     }
+  </script>
+
+  <!-- ③ 발급 시점 기록 (항상 최신으로 덮어쓰기) -->
+  <script>
+    const issuedNow = Date.now();
+    sessionStorage.setItem('coupon_issuedAt', issuedNow.toString());
   </script>
 
   <!-- 로고 + 안내 -->
@@ -63,14 +65,14 @@
     <p class="intro">사진을 누르면 멤버쉽 쿠폰이 제공됩니다.</p>
   </div>
 
-  <!-- ③ 썸네일 그리드 생성 -->
+  <!-- ④ 썸네일 그리드 생성 -->
   <div class="grid" id="couponGrid"></div>
   <script>
-    const grid = document.getElementById('couponGrid');
-    const total     = 17;
-    const tkn       = sessionStorage.getItem('coupon_token');
-    const exp       = sessionStorage.getItem('coupon_expires');
-    const issued    = sessionStorage.getItem('coupon_issuedAt');
+    const grid    = document.getElementById('couponGrid');
+    const total   = 17;
+    const tkn     = sessionStorage.getItem('coupon_token');
+    const exp     = sessionStorage.getItem('coupon_expires');
+    const issued  = sessionStorage.getItem('coupon_issuedAt');
     for (let i = 1; i <= total; i++) {
       const card = document.createElement('div');
       card.className = 'card';
@@ -78,12 +80,12 @@
       img.src = `${i}.png`;
       card.appendChild(img);
       card.onclick = () => {
-        // 상세 페이지에 coupon, token, expires, issuedAt 전부 전달
         window.location.href =
           `detail.html?coupon=${i}&token=${tkn}&expires=${exp}&issuedAt=${issued}`;
       };
       grid.appendChild(card);
     }
   </script>
+
 </body>
 </html>
