@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hanbada Coupons</title>
+  <title>Tag Trip Coupons</title>
   <!-- Google Font for Korean handwriting style -->
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&display=swap" rel="stylesheet" />
   <style>
@@ -12,11 +12,13 @@
     .logo-container { text-align: center; margin-top: 50px; }
     .logo { max-width: 200px; height: auto; }
     .intro { font-family: 'Nanum Brush Script', cursive; font-size: 1.5em; color: #333; margin-top: 10px; }
-    .grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+    .grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 30px; }
     .card { width: 160px; background: #fff; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); overflow: hidden; cursor: pointer; text-align: center; }
     .card img { width: 100%; height: auto; }
-    .expired { color: red; font-weight: bold; font-size: 14px; margin-top: 5px; }
-    @media (max-width: 600px) { .card { width: 100% !important; max-width: none; } }
+    /* 모바일: 한 줄에 하나씩 */
+    @media (max-width: 600px) {
+      .card { width: 100% !important; max-width: none; }
+    }
   </style>
 </head>
 <body>
@@ -27,20 +29,11 @@
   <div class="grid" id="couponGrid"></div>
   <script>
     const grid = document.getElementById('couponGrid');
-    const KEY = 'hanbada_coupon_issue_date';
-    if (!localStorage.getItem(KEY)) localStorage.setItem(KEY, Date.now());
-    const issueDate = new Date(parseInt(localStorage.getItem(KEY)));
-    const expiryDate = new Date(issueDate.getTime() + 7*24*60*60*1000);
     const total = 17;
     for (let i = 1; i <= total; i++) {
       const card = document.createElement('div'); card.className = 'card';
       const img = document.createElement('img'); img.src = `${i}.png`; card.appendChild(img);
-      if (new Date() > expiryDate) {
-        const msg = document.createElement('div'); msg.className = 'expired';
-        msg.innerText = 'Expired – This coupon is no longer valid'; card.appendChild(msg);
-      } else {
-        card.onclick = () => window.location.href = `detail.html?coupon=${i}`;
-      }
+      card.onclick = () => window.location.href = `detail.html?coupon=${i}`;
       grid.appendChild(card);
     }
   </script>
