@@ -5,12 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Coupon Detail</title>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 20px;
-    }
-    /* 멤버십 카드 */
+    body { font-family: sans-serif; text-align: center; padding: 20px; }
     img {
       max-width: 250px;
       width: 70%;
@@ -19,7 +14,6 @@
       display: block;
       margin: 0 auto;
     }
-    /* 남은 유효기간 */
     .timer {
       margin: 20px auto 0;
       font-weight: bold;
@@ -36,35 +30,46 @@
   </style>
 </head>
 <body>
+  <!-- 사무실 IP 인증 (이미 인증된 기기만 진입) -->
+  <script>
+    const AUTH_KEY = 'hanbada_authenticated';
+    if (!localStorage.getItem(AUTH_KEY)) {
+      alert("이 쿠폰은 사무실 와이파이 연결이 필요합니다.");
+      window.location.replace("not-allowed.html");
+    }
+  </script>
+
   <h2 id="title">Coupon</h2>
   <img src="membership.jpg" alt="Membership Card" />
-  <div id="timer" class="timer"></div>
 
+  <div id="timer" class="timer"></div>
   <script>
-    const params = new URLSearchParams(location.search);
-    const idx = params.get('coupon') || '';
+    // 쿠폰 발급 시각(localStorage)에 이미 저장되어 있다고 가정
+    const issuedAt = parseInt(localStorage.getItem('hanbada_coupon_issue_date') || Date.now());
+    // 7일 후 만료
+    const expiryTime = issuedAt + 7*24*60*60*1000;
+
+    // 상세 페이지 진입 시 쿠폰 번호 표시
+    const params = new URLSearchParams(window.location.search);
+    const idx = params.get('coupon');
     if (idx) document.getElementById('title').innerText = `Coupon ${idx}`;
 
-    const issue = parseInt(localStorage.getItem('hanbada_coupon_issue_date') || Date.now());
-    const expiry = new Date(issue + 7*24*60*60*1000);
-
-    function updateTimer() {
-      const diff = expiry - new Date();
+    // 초 단위 카운트다운 & 만료 시 차단
+    function updateTimer(){
+      const diff = expiryTime - Date.now();
       const el = document.getElementById('timer');
       if (diff <= 0) {
-        el.className = 'expired';
-        el.innerText = 'Expired – This coupon is no longer valid';
-        clearInterval(tick);
+        window.location.replace("not-allowed.html");
       } else {
-        const days = Math.floor(diff / (24*3600*1000));
-        const hours = Math.floor((diff / (3600*1000)) % 24);
-        const mins = Math.floor((diff / (60*1000)) % 60);
-        const secs = Math.floor((diff / 1000) % 60);
-        el.innerText = `Remaining: ${days}d ${hours}h ${mins}m ${secs}s`;
+        const d = Math.floor(diff / (24*3600*1000));
+        const h = Math.floor((diff % (24*3600*1000)) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        el.innerText = `Remaining: ${d}d ${h}h ${m}m ${s}s`;
       }
     }
     updateTimer();
-    const tick = setInterval(updateTimer, 1000);
+    setInterval(updateTimer, 1000);
   </script>
 </body>
 </html>
