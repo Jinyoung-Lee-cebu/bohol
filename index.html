@@ -24,18 +24,18 @@
 </head>
 <body>
 
-  <!-- ◉ 새로 스캔할 때마다 이전 쿠폰 세션 초기화 -->
+  <!-- ◉ 0) 이전 쿠폰 세션 완전 초기화 -->
   <script>
     sessionStorage.removeItem('coupon_token');
     sessionStorage.removeItem('coupon_expires');
     sessionStorage.removeItem('coupon_issuedAt');
   </script>
 
-  <!-- ◉ ① URL에서 token·expires 검사 및 저장 -->
+  <!-- ◉ 1) URL에서 token·expires 검사 및 session에 저장 -->
   <script>
     const qs = new URLSearchParams(location.search);
     const token   = qs.get('token');
-    const expires = qs.get('expires');                // YYYYMMDD
+    const expires = qs.get('expires');      // YYYYMMDD
     const today   = new Date().toISOString().slice(0,10).replace(/-/g,'');
     if (!token || !expires || today > expires) {
       return window.location.replace("not-allowed.html");
@@ -44,7 +44,7 @@
     sessionStorage.setItem('coupon_expires', expires);
   </script>
 
-  <!-- ◉ ② 사무실 IP 인증 -->
+  <!-- ◉ 2) 사무실 IP 인증 -->
   <script>
     const AUTH_KEY = 'hanbada_authenticated';
     function deny(){ window.location.replace("not-allowed.html"); }
@@ -60,19 +60,19 @@
     }
   </script>
 
-  <!-- ◉ ③ 발급 시점 강제 기록 -->
+  <!-- ◉ 3) 스캔 시점(매번) issuedAt 기록 -->
   <script>
     const now = Date.now();
     sessionStorage.setItem('coupon_issuedAt', now.toString());
   </script>
 
-  <!-- 로고 + 안내 -->
+  <!-- 로고 + 안내문구 -->
   <div class="logo-container">
     <img src="processed_logo.png" alt="Tag Trip Logo" class="logo"/>
     <p class="intro">사진을 누르면 멤버쉽 쿠폰이 제공됩니다.</p>
   </div>
 
-  <!-- ◉ ④ 썸네일 그리드 -->
+  <!-- ◉ 4) 썸네일 그리드 생성 -->
   <div class="grid" id="couponGrid"></div>
   <script>
     const grid   = document.getElementById('couponGrid');
