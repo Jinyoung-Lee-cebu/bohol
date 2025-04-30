@@ -17,36 +17,36 @@
   </style>
 </head>
 <body>
-  <!-- ① 토큰/만료일 파라미터 검사 -->
+  <!-- ① token·expires 파라미터 재검사 -->
   <script>
     const ps2 = new URLSearchParams(location.search);
-    const t2 = ps2.get('token'), e2 = ps2.get('expires');
+    const t2  = ps2.get('token'), e2 = ps2.get('expires');
     const today2 = new Date().toISOString().slice(0,10).replace(/-/g,'');
     if (!t2 || !e2 || today2 > e2) {
       return window.location.replace("not-allowed.html");
     }
   </script>
 
-  <!-- ② IP 인증 유지 -->
+  <!-- ② IP 인증 유지 확인 -->
   <script>
     if (!localStorage.getItem('hanbada_authenticated')) {
       window.location.replace("not-allowed.html");
     }
   </script>
 
-  <!-- ③ 쿠폰 번호 표시 -->
+  <!-- ③ 쿠폰 번호 & 카드 -->
   <h2 id="title">Coupon</h2>
   <img src="membership.jpg" alt="Membership Card" />
   <div id="timer" class="timer"></div>
 
-  <!-- ④ issuedAt 기반 초단위 7일 카운트다운 -->
+  <!-- ④ issuedAt 기반 7일·초단위 카운트다운 -->
   <script>
-    const ps3    = new URLSearchParams(location.search);
-    const idx3   = ps3.get('coupon');
-    const issued = parseInt(ps3.get('issuedAt')) || Date.now();
-    if (idx3) document.getElementById('title').innerText = `Coupon ${idx3}`;
+    const p = new URLSearchParams(location.search);
+    const idx       = p.get('coupon');
+    const issuedAt  = parseInt(p.get('issuedAt')) || Date.now();
+    if (idx) document.getElementById('title').innerText = `Coupon ${idx}`;
 
-    const expiry = issued + 7*24*60*60*1000;
+    const expiry = issuedAt + 7 * 24 * 60 * 60 * 1000;
     function tick(){
       const diff = expiry - Date.now();
       if (diff <= 0) return window.location.replace("not-allowed.html");
