@@ -17,7 +17,7 @@
   </style>
 </head>
 <body>
-  <!-- ① token·expires 파라미터 재검사 -->
+  <!-- ◉ 1) token·expires 파라미터 재검사 -->
   <script>
     const ps2 = new URLSearchParams(location.search);
     const t2  = ps2.get('token'), e2 = ps2.get('expires');
@@ -27,38 +27,40 @@
     }
   </script>
 
-  <!-- ② IP 인증 유지 확인 -->
+  <!-- ◉ 2) IP 인증 유지 -->
   <script>
     if (!localStorage.getItem('hanbada_authenticated')) {
       window.location.replace("not-allowed.html");
     }
   </script>
 
-  <!-- ③ 쿠폰 번호 & 카드 -->
+  <!-- ◉ 3) 쿠폰 번호 표시 -->
   <h2 id="title">Coupon</h2>
   <img src="membership.jpg" alt="Membership Card" />
   <div id="timer" class="timer"></div>
 
-  <!-- ④ issuedAt 기반 7일·초단위 카운트다운 -->
+  <!-- ◉ 4) issuedAt 기반 7일·초단위 카운트다운 -->
   <script>
     const p = new URLSearchParams(location.search);
-    const idx       = p.get('coupon');
-    const issuedAt  = parseInt(p.get('issuedAt')) || Date.now();
+    const idx      = p.get('coupon');
+    const issuedAt = parseInt(p.get('issuedAt')) || Date.now();
     if (idx) document.getElementById('title').innerText = `Coupon ${idx}`;
 
     const expiry = issuedAt + 7 * 24 * 60 * 60 * 1000;
-    function tick(){
+    function tick() {
       const diff = expiry - Date.now();
-      if (diff <= 0) return window.location.replace("not-allowed.html");
-      const d = Math.floor(diff/86400000),
-            h = Math.floor((diff%86400000)/3600000),
-            m = Math.floor((diff%3600000)/60000),
-            s = Math.floor((diff%60000)/1000);
+      if (diff <= 0) {
+        return window.location.replace("not-allowed.html");
+      }
+      const d = Math.floor(diff / 86400000),
+            h = Math.floor((diff % 86400000) / 3600000),
+            m = Math.floor((diff % 3600000) / 60000),
+            s = Math.floor((diff % 60000) / 1000);
       document.getElementById('timer').innerText =
         `Remaining: ${d}d ${h}h ${m}m ${s}s`;
     }
     tick();
-    setInterval(tick,1000);
+    setInterval(tick, 1000);
   </script>
 </body>
 </html>
