@@ -7,116 +7,59 @@
   <style>
     body { font-family: sans-serif; text-align: center; padding: 20px; }
     img {
-      max-width: 250px;
-      width: 70%;
-      height: auto;
-      border-radius: 8px;
-      display: block;
-      margin: 0 auto;
+      max-width: 250px; width: 70%; height: auto;
+      border-radius: 8px; display: block; margin: 20px auto;
     }
     .timer {
-      margin: 20px auto 0;
-      font-weight: bold;
-      color: green;
-      font-size: 24px;
-      text-align: center;
-    }
-    .expired {
-      color: red;
-      font-weight: bold;
-      font-size: 24px;
-      text-align: center;
+      margin: 20px auto 0; font-weight: bold;
+      color: green; font-size: 24px; text-align: center;
     }
   </style>
 </head>
 <body>
-  <!-- 사무실 IP 인증 -->
-  <!DOCTYPE html>
-<html lang="en">
-<head> … </head>
-<body>
-  <!-- 1) 와이파이 IP 인증 (index와 동일한 로직) -->
+  <!-- ① 토큰·만료일 재검사 -->
   <script>
-    const AUTH_KEY = 'hanbada_authenticated';
-    function deny(){ window.location.replace("not-allowed.html"); }
-    if (!localStorage.getItem(AUTH_KEY)) {
-      fetch("https://api.ipify.org?format=json")
-        .then(r=>r.json())
-        .then(data=>{
-          if (data.ip === "210.23.165.97") {
-            localStorage.setItem(AUTH_KEY, "true");
-          } else deny();
-        })
-        .catch(deny);
-    }
-  </script>
-
-  <!-- 2) 여기부터 기존 issuedAt 카운트다운 -->
-  <h2 id="title">Coupon</h2>
-  <img src="membership.jpg" alt="Membership Card" />
-  <div id="timer" class="timer"></div>
-  <script>
-    const p = new URLSearchParams(location.search);
-    const idx = p.get('coupon'), at = parseInt(p.get('issuedAt'))||Date.now();
-    if (idx) document.getElementById('title').innerText = `Coupon ${idx}`;
-    const expiry = at + 7*24*60*60*1000;
-    function tick(){
-      const d = expiry - Date.now(), el = document.getElementById('timer');
-      if (d<=0) return window.location.replace("not-allowed.html");
-      const days=Math.floor(d/86400000),
-            hrs =Math.floor((d%86400000)/3600000),
-            mins=Math.floor((d%3600000)/60000),
-            secs=Math.floor((d%60000)/1000);
-      el.innerText = `Remaining: ${days}d ${hrs}h ${mins}m ${secs}s`;
-    }
-    tick(); setInterval(tick,1000);
-  </script>
-</body>
-</html>
-
-  <script>
-    const AUTH_KEY = 'hanbada_authenticated';
-    if (!localStorage.getItem(AUTH_KEY)) {
-      alert("이 쿠폰은 사무실 와이파이 연결이 필요합니다.");
+    const p0 = new URLSearchParams(location.search);
+    const t0 = p0.get('token'), e0 = p0.get('expires');
+    const today = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    if (!t0 || !e0 || today > e0) {
       window.location.replace("not-allowed.html");
     }
   </script>
 
+  <!-- ② IP 인증 유지 확인 -->
+  <script>
+    if (!localStorage.getItem('hanbada_authenticated')) {
+      window.location.replace("not-allowed.html");
+    }
+  </script>
+
+  <!-- ③ 쿠폰 번호 표시 -->
   <h2 id="title">Coupon</h2>
   <img src="membership.jpg" alt="Membership Card" />
   <div id="timer" class="timer"></div>
 
+  <!-- ④ issuedAt 기반 초단위 7일 카운트다운 & 만료 차단 -->
   <script>
-    // URL에서 coupon 번호와 issuedAt(발급시점) 읽어오기
-    const params   = new URLSearchParams(location.search);
-    const idx      = params.get('coupon');
-    const issuedAt = parseInt(params.get('issuedAt')) || Date.now();
+    const params = new URLSearchParams(location.search);
+    const idx    = params.get('coupon');
+    const at     = parseInt(params.get('issuedAt')) || Date.now();
+    if (idx) document.getElementById('title').innerText = `Coupon ${idx}`;
 
-    if (idx) {
-      document.getElementById('title').innerText = `Coupon ${idx}`;
-    }
-
-    // 만료 시각 = 발급시점 + 7일
-    const expiryTime = issuedAt + 7 * 24 * 60 * 60 * 1000;
-
-    // 1초마다 남은시간 갱신
-    function updateTimer() {
-      const diff = expiryTime - Date.now();
-      const el   = document.getElementById('timer');
+    const expiry = at + 7*24*60*60*1000;
+    function upd(){
+      const diff = expiry - Date.now();
       if (diff <= 0) {
-        // 만료 즉시 차단
-        window.location.replace("not-allowed.html");
-      } else {
-        const days = Math.floor(diff / (24*3600*1000));
-        const hrs  = Math.floor((diff % (24*3600*1000)) / 3600000);
-        const mins = Math.floor((diff % 3600000) / 60000);
-        const secs = Math.floor((diff % 60000) / 1000);
-        el.innerText = `Remaining: ${days}d ${hrs}h ${mins}m ${secs}s`;
+        return window.location.replace("not-allowed.html");
       }
+      const d = Math.floor(diff/86400000),
+            h = Math.floor((diff%86400000)/3600000),
+            m = Math.floor((diff%3600000)/60000),
+            s = Math.floor((diff%60000)/1000);
+      document.getElementById('timer').innerText =
+        `Remaining: ${d}d ${h}h ${m}m ${s}s`;
     }
-
-    updateTimer();
-    setInterval(updateTimer, 1000);
+    upd(); setInterval(upd,1000);
   </script>
 </body>
 </html>
