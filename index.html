@@ -22,13 +22,35 @@
       text-align: center;
     }
     .card img { width: 100%; height: auto; }
-    /* 모바일: 한 줄에 하나씩 */
     @media (max-width: 600px) {
       .card { width: 100% !important; max-width: none; }
     }
   </style>
 </head>
 <body>
+  <!-- 사무실 IP 인증 -->
+  <script>
+    const AUTH_KEY = 'hanbada_authenticated';
+    // 이미 인증된 기기면 통과
+    if (!localStorage.getItem(AUTH_KEY)) {
+      fetch("https://api.ipify.org?format=json")
+        .then(r=>r.json())
+        .then(data=>{
+          const OFFICE_IP = "210.23.165.97";
+          if (data.ip === OFFICE_IP) {
+            localStorage.setItem(AUTH_KEY, "true");
+          } else {
+            alert("이 쿠폰은 사무실 와이파이 연결이 필요합니다.");
+            window.location.replace("not-allowed.html");
+          }
+        })
+        .catch(_=>{
+          alert("IP 확인에 실패했습니다. 사무실 와이파이에 연결된 상태인지 확인해주세요.");
+          window.location.replace("not-allowed.html");
+        });
+    }
+  </script>
+
   <div class="logo-container">
     <img src="processed_logo.png" alt="Tag Trip Logo" class="logo" />
     <p class="intro">사진을 누르면 멤버쉽 쿠폰이 제공됩니다.</p>
