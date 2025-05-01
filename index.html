@@ -6,80 +6,77 @@
   <title>Tag Trip Coupons</title>
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&display=swap" rel="stylesheet"/>
   <style>
-    body { font-family: sans-serif; background: #f5f5f5; margin:0; padding:20px; }
+    body { font-family:sans-serif; background:#f5f5f5; margin:0; padding:20px; }
     .logo-container { text-align:center; margin-top:-20px; }
-    .logo { max-width:200px; height:auto; }
-    .intro { font-family:'Nanum Brush Script', cursive; font-size:1.5em; color:#333; margin-top:10px; }
+    .logo { max-width:200px; }
+    .intro { font-family:'Nanum Brush Script', cursive; font-size:1.5em; color:#333; margin:10px 0; }
     .grid { display:flex; flex-wrap:wrap; gap:15px; justify-content:center; margin-top:30px; }
-    .card {
-      width:160px; background:#fff; border-radius:8px;
-      box-shadow:0 0 8px rgba(0,0,0,0.1); overflow:hidden;
-      cursor:pointer; text-align:center;
-    }
-    .card img { width:100%; height:auto; display:block; }
-    @media(max-width:600px){
-      .card { width:100% !important; max-width:none; }
-    }
+    .card { width:160px; background:#fff; border-radius:8px; box-shadow:0 0 8px rgba(0,0,0,0.1); overflow:hidden; cursor:pointer; text-align:center; }
+    .card img { width:100%; display:block; }
+    @media(max-width:600px){ .card { width:100% !important; } }
   </style>
 </head>
 <body>
 
-  <script>
-    // 공통 deny 함수
-    const deny = () => location.replace('not-allowed.html');
+<script>
+  const deny = ()=> location.replace('not-allowed.html');
+  const qs = new URLSearchParams(location.search);
+  const token = qs.get('token');
+  if (!token) deny();
 
-    // 1) URL에서 token 꺼내기
-    const qs = new URLSearchParams(location.search);
-    const token = qs.get('token');
-    if (!token) deny();
+  // 1) 토큰 파싱: "YYYYMMDD_CODE"
+  const parts = token.split('_');
+  if (parts.length !== 2) deny();
+  const [dateStr, code] = parts;
+  if (!/^\d{8}$/.test(dateStr)) deny();
 
-    // 2) 오늘 날짜 기반으로 토큰 생성 함수
-    function getTodayToken() {
-      const now = new Date();
-      const mm = String(now.getMonth() + 1).padStart(2,'0');
-      const dd = String(now.getDate()).padStart(2,'0');
-      const map = {'0':'Z','1':'O','2':'T','3':'H','4':'F','5':'M','6':'S','7':'V','8':'E','9':'N'};
-      const prefix = map[mm[0]] + map[mm[1]];
-      const suffix = map[dd[0]] + map[dd[1]];
-      return `${prefix}${Number(dd)}${suffix}`;
-    }
+  // 2) 압축 코드 계산 함수 (월·일 → 코드)
+  function compressCodeFrom(dateStr) {
+    const map = {'0':'Z','1':'O','2':'T','3':'H','4':'F','5':'M','6':'S','7':'V','8':'E','9':'N'};
+    const mm = dateStr.slice(4,6), dd = dateStr.slice(6,8);
+    const prefix = map[mm[0]] + map[mm[1]];
+    const suffix = map[dd[0]] + map[dd[1]];
+    return `${prefix}${Number(dd)}${suffix}`;
+  }
+  if (code !== compressCodeFrom(dateStr)) deny();
 
-    const todayToken = getTodayToken();
-    if (token !== todayToken) deny();
+  // 3) 발급일로부터 7일 유효 검사
+  const year  = +dateStr.slice(0,4),
+        month = +dateStr.slice(4,6) - 1,
+        day   = +dateStr.slice(6,8);
+  const issuedTime = new Date(year, month, day).getTime();
+  if (Date.now() > issuedTime + 7*24*60*60*1000) deny();
 
-    // 3) 사무실 와이파이 인증
-    const AUTH_KEY = 'hanbada_authenticated';
-    if (!localStorage.getItem(AUTH_KEY)) {
-      fetch('https://api.ipify.org?format=json')
-        .then(r=>r.json())
-        .then(d=> {
-          if (d.ip === '210.23.165.97') localStorage.setItem(AUTH_KEY,'true');
-          else deny();
-        })
-        .catch(deny);
-    }
-  </script>
+  // 4) 사무실 와이파이 인증 (IP)
+  const AUTH_KEY = 'hanbada_authenticated';
+  if (!localStorage.getItem(AUTH_KEY)) {
+    fetch('https://api.ipify.org?format=json')
+      .then(r=>r.json())
+      .then(d=> {
+        if (d.ip === '210.23.165.97') localStorage.setItem(AUTH_KEY,'true');
+        else deny();
+      }).catch(deny);
+  }
+</script>
 
-  <!-- 로고 + 안내 -->
-  <div class="logo-container">
-    <img src="processed_logo.png" alt="Tag Trip Logo" class="logo"/>
-    <p class="intro">사진을 누르면 멤버쉽 쿠폰이 제공됩니다.</p>
-  </div>
+<div class="logo-container">
+  <img src="processed_logo.png" alt="Tag Trip Logo" class="logo"/>
+  <p class="intro">사진을 누르면 멤버쉽 쿠폰이 제공됩니다.</p>
+</div>
 
-  <!-- 쿠폰 썸네일 그리드 -->
-  <div class="grid" id="couponGrid"></div>
-  <script>
-    const grid = document.getElementById('couponGrid');
-    for (let i=1; i<=17; i++){
-      const card = document.createElement('div');
-      card.className = 'card';
-      const img = document.createElement('img');
-      img.src = `${i}.png`;
-      card.appendChild(img);
-      card.onclick = ()=> location.href = `detail.html?coupon=${i}&token=${token}`;
-      grid.appendChild(card);
-    }
-  </script>
+<div class="grid" id="couponGrid"></div>
+<script>
+  const grid = document.getElementById('couponGrid');
+  for (let i=1; i<=17; i++){
+    const card = document.createElement('div');
+    card.className = 'card';
+    const img = document.createElement('img');
+    img.src = `${i}.png`;
+    card.appendChild(img);
+    card.onclick = ()=> location.href = `detail.html?coupon=${i}&token=${encodeURIComponent(token)}`;
+    grid.appendChild(card);
+  }
+</script>
 
 </body>
 </html>
