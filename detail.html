@@ -13,12 +13,15 @@
 <body>
 
   <script>
+    // IP 인증 유지
     const deny = () => location.replace('not-allowed.html');
+    if (!localStorage.getItem('hanbada_authenticated')) deny();
+
+    // token 검증(오늘 토큰과 일치 여부)
     const qs = new URLSearchParams(location.search);
     const token = qs.get('token');
     if (!token) deny();
-
-    // 오늘 날짜 토큰 재생성
+    // getTodayToken() 함수를 index.html과 똑같이 정의
     function getTodayToken() {
       const now = new Date();
       const mm = String(now.getMonth() + 1).padStart(2,'0');
@@ -29,9 +32,6 @@
       return `${prefix}${Number(dd)}${suffix}`;
     }
     if (token !== getTodayToken()) deny();
-
-    // IP 인증 유지
-    if (!localStorage.getItem('hanbada_authenticated')) deny();
   </script>
 
   <h2 id="title">Coupon</h2>
@@ -43,14 +43,10 @@
     const idx = new URLSearchParams(location.search).get('coupon');
     if (idx) document.getElementById('title').innerText = `Coupon ${idx}`;
 
-    // 발급 날짜 기준 만료: 토큰의 날짜 부분 → YYYYMMDD
-    const parts = token.split('_');
-    const dateStr = parts[1];  // e.g. "20250501"
-    const year = +dateStr.slice(0,4),
-          month = +dateStr.slice(4,6) - 1,
-          day = +dateStr.slice(6,8);
-    const issuedTime = new Date(year, month, day).getTime();
-    const expiry = issuedTime + 7 * 24 * 60 * 60 * 1000;
+    // 오늘 00:00 기준으로 시간 계산
+    const now = new Date();
+    const issuedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const expiry      = issuedDate + 7 * 24 * 60 * 60 * 1000;
 
     function updateTimer() {
       const diff = expiry - Date.now();
