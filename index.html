@@ -18,8 +18,12 @@
     const token = qs.get('token');
     if (!token) window.location.replace("not-allowed.html");
 
-    // 발급 시각: QR 스캔한 이 순간을 기준으로 매번 초기화
-    const issuedAt = new Date().getTime(); // 확실히 밀리초 기록
+    // 발급 시점이 없으면 저장 (처음 방문 시점만 기록)
+    if (!localStorage.getItem("issuedAt")) {
+      const now = Date.now();
+      localStorage.setItem("issuedAt", now);
+      console.log("issuedAt 저장됨:", now);
+    }
   </script>
 
   <!-- 사무실 IP 인증 -->
@@ -40,7 +44,7 @@
     }
   </script>
 
-  <!-- 썸네일 카드 -->
+  <!-- 쿠폰 썸네일 -->
   <div class="grid" id="couponGrid"></div>
   <script>
     const grid = document.getElementById("couponGrid");
@@ -51,7 +55,7 @@
       img.src = `${i}.png`;
       card.appendChild(img);
       card.onclick = () => {
-        const url = `detail.html?coupon=${i}&token=${token}&issuedAt=${issuedAt}`;
+        const url = `detail.html?coupon=${i}&token=${token}`;
         window.location.href = url;
       };
       grid.appendChild(card);
