@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Tag Trip Coupons</title>
   <style>
@@ -13,53 +13,64 @@
 </head>
 <body>
 
-  <script>
-    const qs = new URLSearchParams(location.search);
-    const token = qs.get('token');
-    if (!token) window.location.replace("not-allowed.html");
+<script>
+  const qs = new URLSearchParams(location.search);
+  const token = qs.get('token');
+  const savedToken = localStorage.getItem('token');
+  const issuedAt = parseInt(localStorage.getItem('issuedAt'), 10);
+  const now = Date.now();
 
-    // 발급 시점이 없으면 저장 (처음 방문 시점만 기록)
-    if (!localStorage.getItem("issuedAt")) {
-      const now = Date.now();
-      localStorage.setItem("issuedAt", now);
-      console.log("issuedAt 저장됨:", now);
-    }
-  </script>
+  if (!token) {
+    window.location.replace("not-allowed.html");
+  }
 
-  <!-- 사무실 IP 인증 -->
-  <script>
-    const AUTH_KEY = 'hanbada_authenticated';
-    function deny() { window.location.replace("not-allowed.html"); }
-    if (!localStorage.getItem(AUTH_KEY)) {
-      fetch("https://api.ipify.org?format=json")
-        .then(res => res.json())
-        .then(data => {
-          if (data.ip === "210.23.165.97") {
-            localStorage.setItem(AUTH_KEY, "true");
-          } else {
-            deny();
-          }
-        })
-        .catch(deny);
-    }
-  </script>
+  // ✅ 7일 유효기간 확인
+  const expired = issuedAt && now > issuedAt + 7 * 24 * 60 * 60 * 1000;
+  if (expired) {
+    window.location.replace("not-allowed.html");
+  }
 
-  <!-- 쿠폰 썸네일 -->
-  <div class="grid" id="couponGrid"></div>
-  <script>
-    const grid = document.getElementById("couponGrid");
-    for (let i = 1; i <= 17; i++) {
-      const card = document.createElement("div");
-      card.className = "card";
-      const img = document.createElement("img");
-      img.src = `${i}.png`;
-      card.appendChild(img);
-      card.onclick = () => {
-        const url = `detail.html?coupon=${i}&token=${token}`;
-        window.location.href = url;
-      };
-      grid.appendChild(card);
-    }
-  </script>
+  // ✅ 토큰이 바뀐 경우에만 발급 시간 초기화
+  if (!issuedAt || token !== savedToken) {
+    localStorage.setItem('token', token);
+    localStorage.setItem('issuedAt', now);
+  }
+</script>
+
+<!-- ✅ 사무실 와이파이 인증 -->
+<script>
+  const AUTH_KEY = 'hanbada_authenticated';
+  function deny() { window.location.replace("not-allowed.html"); }
+  if (!localStorage.getItem(AUTH_KEY)) {
+    fetch("https://api.ipify.org?format=json")
+      .then(res => res.json())
+      .then(data => {
+        if (data.ip === "210.23.165.97") {
+          localStorage.setItem(AUTH_KEY, "true");
+        } else {
+          deny();
+        }
+      })
+      .catch(deny);
+  }
+</script>
+
+<!-- ✅ 쿠폰 썸네일 -->
+<div class="grid" id="couponGrid"></div>
+<script>
+  const grid = document.getElementById("couponGrid");
+  for (let i = 1; i <= 17; i++) {
+    const card = document.createElement("div");
+    card.className = "card";
+    const img = document.createElement("img");
+    img.src = `${i}.png`;
+    card.appendChild(img);
+    card.onclick = () => {
+      window.location.href = `detail.html?coupon=${i}`;
+    };
+    grid.appendChild(card);
+  }
+</script>
+
 </body>
 </html>
