@@ -11,38 +11,62 @@
     .logo { max-width:200px; height:auto; }
     .intro { font-family:'Nanum Brush Script', cursive; font-size:1.5em; color:#333; margin-top:10px; }
     .grid { display:flex; flex-wrap:wrap; gap:15px; justify-content:center; margin-top:30px; }
-    .card { width:160px; background:#fff; border-radius:8px; box-shadow:0 0 8px rgba(0,0,0,0.1); overflow:hidden; cursor:pointer; text-align:center; }
+    .card {
+      width:160px; background:#fff; border-radius:8px;
+      box-shadow:0 0 8px rgba(0,0,0,0.1); overflow:hidden;
+      cursor:pointer; text-align:center;
+    }
     .card img { width:100%; height:auto; display:block; }
-    @media(max-width:600px){ .card { width:100% !important; max-width:none; } }
+    @media(max-width:600px){
+      .card { width:100% !important; max-width:none; }
+    }
   </style>
 </head>
 <body>
 
   <script>
+    // 공통 deny 함수
+    const deny = () => location.replace('not-allowed.html');
+
+    // 1) URL에서 token 꺼내기
     const qs = new URLSearchParams(location.search);
     const token = qs.get('token');
-    if (!token) location.replace('not-allowed.html');
-  </script>
+    if (!token) deny();
 
-  <!-- 사무실 와이파이 인증 -->
-  <script>
+    // 2) 오늘 날짜 기반으로 토큰 생성 함수
+    function getTodayToken() {
+      const now = new Date();
+      const mm = String(now.getMonth() + 1).padStart(2,'0');
+      const dd = String(now.getDate()).padStart(2,'0');
+      const map = {'0':'Z','1':'O','2':'T','3':'H','4':'F','5':'M','6':'S','7':'V','8':'E','9':'N'};
+      const prefix = map[mm[0]] + map[mm[1]];
+      const suffix = map[dd[0]] + map[dd[1]];
+      return `${prefix}${Number(dd)}${suffix}`;
+    }
+
+    const todayToken = getTodayToken();
+    if (token !== todayToken) deny();
+
+    // 3) 사무실 와이파이 인증
     const AUTH_KEY = 'hanbada_authenticated';
-    function deny(){ location.replace('not-allowed.html'); }
     if (!localStorage.getItem(AUTH_KEY)) {
       fetch('https://api.ipify.org?format=json')
         .then(r=>r.json())
         .then(d=> {
           if (d.ip === '210.23.165.97') localStorage.setItem(AUTH_KEY,'true');
           else deny();
-        }).catch(deny);
+        })
+        .catch(deny);
     }
   </script>
 
+  <!-- 로고 + 안내 -->
   <div class="logo-container">
     <img src="processed_logo.png" alt="Tag Trip Logo" class="logo"/>
     <p class="intro">사진을 누르면 멤버쉽 쿠폰이 제공됩니다.</p>
   </div>
 
+  <!-- 쿠폰 썸네일 그리드 -->
   <div class="grid" id="couponGrid"></div>
   <script>
     const grid = document.getElementById('couponGrid');
@@ -52,11 +76,10 @@
       const img = document.createElement('img');
       img.src = `${i}.png`;
       card.appendChild(img);
-      card.onclick = ()=> {
-        location.href = `detail.html?coupon=${i}&token=${encodeURIComponent(token)}`;
-      };
+      card.onclick = ()=> location.href = `detail.html?coupon=${i}&token=${token}`;
       grid.appendChild(card);
     }
   </script>
+
 </body>
 </html>
