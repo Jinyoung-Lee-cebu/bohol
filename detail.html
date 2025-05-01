@@ -12,63 +12,57 @@
 </head>
 <body>
 
-<script>
-  const deny = ()=> location.replace('not-allowed.html');
-  const qs = new URLSearchParams(location.search);
-  const token = qs.get('token');
-  if (!token) deny();
+  <h2 id="title">Coupon</h2>
+  <img src="membership.jpg" alt="Membership Card"/>
+  <div id="timer"></div>
 
-  // 토큰 파싱
-  const parts = token.split('_');
-  if (parts.length !== 2) deny();
-  const [dateStr, code] = parts;
-  if (!/^\d{8}$/.test(dateStr)) deny();
+  <script>
+    const deny = () => location.replace('not-allowed.html');
+    const qs    = new URLSearchParams(location.search);
+    const token = qs.get('token');
+    const idx   = qs.get('coupon');
 
-  // 코드 검증
-  function compressCode(dateStr) {
+    // 1) 파라미터 체크
+    if (!token || !idx) deny();
+    document.getElementById('title').innerText = `Coupon ${idx}`;
+
+    // 2) 토큰 형식 & 코드 검증
+    const parts = token.split('_');
+    if (parts.length !== 2) deny();
+    const [dateStr, code] = parts;
+    if (!/^\d{8}$/.test(dateStr)) deny();
+
     const map = {'0':'Z','1':'O','2':'T','3':'H','4':'F','5':'M','6':'S','7':'V','8':'E','9':'N'};
     const mm = dateStr.slice(4,6), dd = dateStr.slice(6,8);
-    return map[mm[0]]+map[mm[1]] + Number(dd) + map[dd[0]]+map[dd[1]];
-  }
-  if (code !== compressCode(dateStr)) deny();
+    const expectedCode = map[mm[0]] + map[mm[1]] + Number(dd) + map[dd[0]] + map[dd[1]];
+    if (code !== expectedCode) deny();
 
-  // 7일 유효 검사
-  const y=+dateStr.slice(0,4), m=+dateStr.slice(4,6)-1, d=+dateStr.slice(6,8);
-  const issued = new Date(y,m,d).getTime();
-  if (Date.now() > issued + 7*24*60*60*1000) deny();
+    // 3) 발급일(00:00) 기준 7일 유효 검사
+    const y = +dateStr.slice(0,4),
+          m = +dateStr.slice(4,6) - 1,
+          d = +dateStr.slice(6,8);
+    const issuedTime = new Date(y, m, d).getTime();
+    const expiry     = issuedTime + 7 * 24 * 60 * 60 * 1000;
+    if (Date.now() > expiry) deny();
 
-  // IP 인증 유지
-  if (!localStorage.getItem('hanbada_authenticated')) deny();
-</script>
+    // 4) IP 인증 유지
+    if (!localStorage.getItem('hanbada_authenticated')) deny();
 
-<h2 id="title">Coupon</h2>
-<img src="membership.jpg" alt="Membership Card"/>
-<div id="timer"></div>
+    // 5) 타이머 함수
+    function updateTimer() {
+      const diff = expiry - Date.now();
+      if (diff <= 0) return deny();
+      const days = Math.floor(diff / 86400000),
+            hrs  = Math.floor((diff % 86400000) / 3600000),
+            mins = Math.floor((diff % 3600000)  / 60000),
+            secs = Math.floor((diff % 60000)     / 1000);
+      document.getElementById('timer').innerText =
+        `Remaining: ${days}d ${hrs}h ${mins}m ${secs}s`;
+    }
 
-<script>
-  // 제목
-  const idx = new URLSearchParams(location.search).get('coupon');
-  if (idx) document.getElementById('title').innerText = `Coupon ${idx}`;
-
-  // 카운트다운: 발급일 00:00 기준 +7일
-  const parts = token.split('_'), ds = parts[0];
-  const y=+ds.slice(0,4), m=+ds.slice(4,6)-1, d=+ds.slice(6,8);
-  const start = new Date(y,m,d).getTime();
-  const expiry = start + 7*24*60*60*1000;
-
-  function tick(){
-    const diff = expiry - Date.now();
-    if (diff <=0) return deny();
-    const days = Math.floor(diff/86400000),
-          hrs  = Math.floor((diff%86400000)/3600000),
-          mins = Math.floor((diff%3600000)/60000),
-          secs = Math.floor((diff%60000)/1000);
-    document.getElementById('timer').innerText =
-      `Remaining: ${days}d ${hrs}h ${mins}m ${secs}s`;
-  }
-  tick();
-  setInterval(tick,1000);
-</script>
+    updateTimer();
+    setInterval(updateTimer, 1000);
+  </script>
 
 </body>
 </html>
