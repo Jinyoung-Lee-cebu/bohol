@@ -6,15 +6,8 @@
   <title>Coupon Detail</title>
   <style>
     body { font-family:sans-serif; text-align:center; padding:20px; }
-    img {
-      width:70%; max-width:250px; display:block;
-      margin:20px auto;
-    }
-    #timer {
-      margin-top:20px; font-size:28px;
-      font-weight:bold; color:green;
-      text-align:center;
-    }
+    img { width:70%; max-width:250px; display:block; margin:20px auto; }
+    #timer { margin-top:20px; font-size:28px; font-weight:bold; color:green; }
   </style>
 </head>
 <body>
@@ -24,11 +17,10 @@
     if (!localStorage.getItem('hanbada_authenticated')) {
       location.replace('not-allowed.html');
     }
-    // 쿠폰 발급 시점 읽기
-    const issuedAt = parseInt(localStorage.getItem('issuedAt'),10);
-    if (!issuedAt || Date.now() > issuedAt + 7*24*60*60*1000) {
-      location.replace('not-allowed.html');
-    }
+    // 파라미터 검사
+    const ps = new URLSearchParams(location.search);
+    const token = ps.get('token');
+    if (!token) location.replace('not-allowed.html');
   </script>
 
   <h2 id="title">Coupon</h2>
@@ -36,14 +28,22 @@
   <div id="timer"></div>
 
   <script>
-    // 제목 설정
+    // coupon 번호 표시
     const idx = new URLSearchParams(location.search).get('coupon');
     if (idx) document.getElementById('title').innerText = `Coupon ${idx}`;
 
-    // 카운트다운
-    const expiry = issuedAt + 7*24*60*60*1000;
+    // token 형식: "QR_YYYYMMDD_rand"
+    const parts = token.split('_');
+    const dateStr = parts[1];  // YYYYMMDD
+    const year = parseInt(dateStr.slice(0,4),10),
+          month = parseInt(dateStr.slice(4,6),10)-1,
+          day = parseInt(dateStr.slice(6,8),10);
+    // 발급 날짜 00:00:00 기준
+    const issuedDate = new Date(year,month,day).getTime();
+    const expiryTime = issuedDate + 7*24*60*60*1000;
+
     function tick(){
-      const diff = expiry - Date.now();
+      const diff = expiryTime - Date.now();
       if (diff <= 0) return location.replace('not-allowed.html');
       const d = Math.floor(diff/86400000),
             h = Math.floor((diff%86400000)/3600000),
@@ -52,9 +52,9 @@
       document.getElementById('timer').innerText =
         `Remaining: ${d}d ${h}h ${m}m ${s}s`;
     }
-    tick();
-    setInterval(tick, 1000);
-  </script>
 
+    tick();
+    setInterval(tick,1000);
+  </script>
 </body>
 </html>
