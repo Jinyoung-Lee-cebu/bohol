@@ -18,6 +18,12 @@
     if (!localStorage.getItem('hanbada_authenticated')) {
       window.location.replace("not-allowed.html");
     }
+
+    const issuedAt = parseInt(localStorage.getItem("issuedAt"), 10);
+    if (!issuedAt) {
+      alert("발급 정보가 없습니다. 메인 화면에서 다시 시작해 주세요.");
+      window.location.replace("not-allowed.html");
+    }
   </script>
 
   <h2 id="title">Coupon</h2>
@@ -26,7 +32,6 @@
 
   <script>
     const idx = params.get("coupon");
-    const issuedAt = parseInt(params.get("issuedAt"), 10) || Date.now();
     if (idx) {
       document.getElementById("title").innerText = `Coupon ${idx}`;
     }
