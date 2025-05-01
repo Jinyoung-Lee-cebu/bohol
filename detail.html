@@ -6,53 +6,55 @@
   <title>Coupon Detail</title>
   <style>
     body { font-family:sans-serif; text-align:center; padding:20px; }
-    img { max-width:250px; width:70%; display:block; margin:20px auto; }
-    .timer { font-weight:bold; color:green; font-size:24px; }
+    img {
+      width:70%; max-width:250px; display:block;
+      margin:20px auto;
+    }
+    #timer {
+      margin-top:20px; font-size:28px;
+      font-weight:bold; color:green;
+      text-align:center;
+    }
   </style>
 </head>
 <body>
 
-<script>
-  if (!localStorage.getItem('hanbada_authenticated')) {
-    window.location.replace("not-allowed.html");
-  }
-
-  const issuedAt = parseInt(localStorage.getItem("issuedAt"), 10);
-  const now = Date.now();
-
-  if (!issuedAt || now > issuedAt + 7 * 24 * 60 * 60 * 1000) {
-    window.location.replace("not-allowed.html");
-  }
-</script>
-
-<h2 id="title">Coupon</h2>
-<img src="membership.jpg" alt="Membership Card"/>
-<div id="timer" class="timer"></div>
-
-<script>
-  const params = new URLSearchParams(location.search);
-  const idx = params.get("coupon");
-  if (idx) document.getElementById("title").innerText = `Coupon ${idx}`;
-
-  const expiry = issuedAt + 7 * 24 * 60 * 60 * 1000;
-
-  function updateTimer() {
-    const now = Date.now();
-    const diff = expiry - now;
-    if (diff <= 0) {
-      window.location.replace("not-allowed.html");
-      return;
+  <script>
+    // IP 인증 유지
+    if (!localStorage.getItem('hanbada_authenticated')) {
+      location.replace('not-allowed.html');
     }
-    const d = Math.floor(diff / 86400000),
-          h = Math.floor((diff % 86400000) / 3600000),
-          m = Math.floor((diff % 3600000) / 60000),
-          s = Math.floor((diff % 60000) / 1000);
-    document.getElementById("timer").textContent =
-      `Remaining: ${d}d ${h}h ${m}m ${s}s`;
-  }
+    // 쿠폰 발급 시점 읽기
+    const issuedAt = parseInt(localStorage.getItem('issuedAt'),10);
+    if (!issuedAt || Date.now() > issuedAt + 7*24*60*60*1000) {
+      location.replace('not-allowed.html');
+    }
+  </script>
 
-  updateTimer();
-  setInterval(updateTimer, 1000);
-</script>
+  <h2 id="title">Coupon</h2>
+  <img src="membership.jpg" alt="Membership Card"/>
+  <div id="timer"></div>
+
+  <script>
+    // 제목 설정
+    const idx = new URLSearchParams(location.search).get('coupon');
+    if (idx) document.getElementById('title').innerText = `Coupon ${idx}`;
+
+    // 카운트다운
+    const expiry = issuedAt + 7*24*60*60*1000;
+    function tick(){
+      const diff = expiry - Date.now();
+      if (diff <= 0) return location.replace('not-allowed.html');
+      const d = Math.floor(diff/86400000),
+            h = Math.floor((diff%86400000)/3600000),
+            m = Math.floor((diff%3600000)/60000),
+            s = Math.floor((diff%60000)/1000);
+      document.getElementById('timer').innerText =
+        `Remaining: ${d}d ${h}h ${m}m ${s}s`;
+    }
+    tick();
+    setInterval(tick, 1000);
+  </script>
+
 </body>
 </html>
