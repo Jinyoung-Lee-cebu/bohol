@@ -4,7 +4,6 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Tag Trip Coupons</title>
-  <!-- 한글 손글씨체 -->
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&display=swap" rel="stylesheet"/>
   <style>
     body { font-family: sans-serif; background: #f5f5f5; margin:0; padding:20px; }
@@ -12,15 +11,9 @@
     .logo { max-width:200px; height:auto; }
     .intro { font-family:'Nanum Brush Script', cursive; font-size:1.5em; color:#333; margin-top:10px; }
     .grid { display:flex; flex-wrap:wrap; gap:15px; justify-content:center; margin-top:30px; }
-    .card {
-      width:160px; background:#fff; border-radius:8px;
-      box-shadow:0 0 8px rgba(0,0,0,0.1); overflow:hidden;
-      cursor:pointer; text-align:center;
-    }
+    .card { width:160px; background:#fff; border-radius:8px; box-shadow:0 0 8px rgba(0,0,0,0.1); overflow:hidden; cursor:pointer; text-align:center; }
     .card img { width:100%; height:auto; display:block; }
-    @media(max-width:600px){
-      .card { width:100% !important; max-width:none; }
-    }
+    @media(max-width:600px){ .card { width:100% !important; max-width:none; } }
   </style>
 </head>
 <body>
@@ -29,22 +22,6 @@
     const qs = new URLSearchParams(location.search);
     const token = qs.get('token');
     if (!token) location.replace('not-allowed.html');
-
-    // 이전에 저장된 token/issuedAt 읽기
-    const savedToken  = localStorage.getItem('token');
-    const savedIssued = parseInt(localStorage.getItem('issuedAt'), 10);
-    const now         = Date.now();
-
-    // 7일이 지났으면 차단
-    if (savedIssued && now > savedIssued + 7*24*60*60*1000) {
-      location.replace('not-allowed.html');
-    }
-
-    // token이 바뀌었거나 최초 발급 시점이라면 issuedAt 초기화
-    if (!savedIssued || token !== savedToken) {
-      localStorage.setItem('token', token);
-      localStorage.setItem('issuedAt', now);
-    }
   </script>
 
   <!-- 사무실 와이파이 인증 -->
@@ -54,8 +31,8 @@
     if (!localStorage.getItem(AUTH_KEY)) {
       fetch('https://api.ipify.org?format=json')
         .then(r=>r.json())
-        .then(d=>{
-          if (d.ip === '210.23.165.97') localStorage.setItem(AUTH_KEY, 'true');
+        .then(d=> {
+          if (d.ip === '210.23.165.97') localStorage.setItem(AUTH_KEY,'true');
           else deny();
         }).catch(deny);
     }
@@ -69,14 +46,14 @@
   <div class="grid" id="couponGrid"></div>
   <script>
     const grid = document.getElementById('couponGrid');
-    for (let i=1; i<=17; i++) {
+    for (let i=1; i<=17; i++){
       const card = document.createElement('div');
       card.className = 'card';
-      const img  = document.createElement('img');
-      img.src    = `${i}.png`;
+      const img = document.createElement('img');
+      img.src = `${i}.png`;
       card.appendChild(img);
       card.onclick = ()=> {
-        location.href = `detail.html?coupon=${i}`;
+        location.href = `detail.html?coupon=${i}&token=${encodeURIComponent(token)}`;
       };
       grid.appendChild(card);
     }
